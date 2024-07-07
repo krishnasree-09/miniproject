@@ -1,0 +1,33 @@
+/* src/components/Navbar.css */
+.navbar-nav .nav-link {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 768px) {
+    .navbar-nav .nav-link {
+      padding-left: 0.3rem;
+      padding-right: 0.3rem;
+      font-size: 0.8rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .navbar-nav .nav-link {
+      padding-left: 0.2rem;
+      padding-right: 0.2rem;
+      font-size: 0.7rem;
+    }
+  }
+
+  /* src/components/Navbar.css */
+.navbar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+  }
+  
+  
