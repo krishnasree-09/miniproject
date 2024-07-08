@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 // src/pages/Login.jsx
-// eslint-disable-next-line no-unused-vars
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -33,9 +34,25 @@ export default function Login() {
                 serviceRequestor,
                 serviceProvider
             });
+
             if (response.error) {
                 toast.error(response.error);
             } else {
+                // Set user data or token as needed
+                // localStorage.setItem('authToken', response.token);
+
+                // Redirect based on role
+                console.log(response)
+                console.log(response.user.role == 'serviceRequestor')
+                if (response.user.role == 'serviceProvider') {
+                    navigate('/service-provider-dashboard');
+                } else if (response.user.role == 'serviceRequestor') {
+                    navigate('/user-dashboard');
+                } else {
+                    toast.error('Unknown role');
+                }
+
+                // Clear form data
                 setData({
                     email: '',
                     password: '',
@@ -43,15 +60,15 @@ export default function Login() {
                     serviceProvider: false,
                 });
                 toast.success('Login Successful, WELCOME!!');
-                navigate('/dashboard');
             }
         } catch (error) {
             console.log(error);
+            toast.error('An error occurred during login');
         }
     };
 
     return (
-        <div className=" vh-100 vw-100 container-fluid d-flex align-items-center justify-content-center bg-secondary">
+        <div className="vh-100 vw-100 container-fluid d-flex align-items-center justify-content-center bg-secondary">
             <div className="card p-5 bg-dark text-white w-50">
                 <h2 className="text-center mb-4">Login</h2>
                 <form onSubmit={loginUser}>

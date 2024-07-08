@@ -1,5 +1,4 @@
-// src/pages/Register.jsx
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -51,6 +50,37 @@ export default function Register() {
         }
     };
 
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                try {
+                    const response = await axios.get(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+                    if (response.data && response.data.address) {
+                        // Extract address components
+                        const address = [
+                            response.data.address.road,
+                            response.data.address.suburb,
+                            response.data.address.city,
+                            response.data.address.state,
+                            response.data.address.country,
+                            response.data.address.postcode
+                        ].filter(Boolean).join(', '); // Join components and filter out empty values
+                        setData({ ...data, location: address });
+                    } else {
+                        toast.error('Location not found');
+                    }
+                } catch (error) {
+                    toast.error('Failed to fetch location');
+                }
+            });
+        } else {
+            toast.error('Geolocation is not supported by this browser.');
+        }
+    };
+
+
     const handleCheckboxChange = (e) => {
         const { name, checked } = e.target;
         setData((prevData) => ({
@@ -60,8 +90,8 @@ export default function Register() {
     };
 
     return (
-        <div className=" vh-100 vw-100 container-fluid d-flex align-items-center justify-content-center bg-secondary">
-            <div className="card p-4 bg-dark text-white w-50 ">
+        <div className="vh-100 vw-100 container-fluid d-flex align-items-center justify-content-center bg-secondary">
+            <div className="card p-4 bg-dark text-white w-50">
                 <h2 className="text-center mb-4">Register</h2>
                 <form onSubmit={registerUser}>
                     <div className="form-group mb-3">
@@ -110,14 +140,19 @@ export default function Register() {
                     </div>
                     <div className="form-group mb-3">
                         <label htmlFor="location">Location</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            id="location"
-                            placeholder="Location"
-                            value={data.location}
-                            onChange={(e) => setData({ ...data, location: e.target.value })}
-                        />
+                        <div className="d-flex">
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="location"
+                                placeholder="Location"
+                                value={data.location}
+                                onChange={(e) => setData({ ...data, location: e.target.value })}
+                            />
+                            <button type="button" className="btn btn-primary ml-2" onClick={getLocation}>
+                                Get Location
+                            </button>
+                        </div>
                     </div>
                     <div className="form-group mb-3">
                         <label>Role</label>

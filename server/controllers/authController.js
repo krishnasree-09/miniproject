@@ -84,15 +84,21 @@ const loginUser = async (req, res) => {
             return res.json({ error: 'Service requestor selection does not match' });
         }
 
-        // Generate JWT token
+        // Generate JWT token with user role information
         jwt.sign(
-            { email: user.email, id: user._id, name: user.name },
+            { email: user.email, id: user._id, name: user.name, role: user.serviceProvider ? 'serviceProvider' : 'serviceRequestor' },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }, // Example expiration time
             (err, token) => {
-                if (err) throw err
-                res.cookie('token', token ) .json(user);
-                return res.json({ message: 'Login successful', user });
+                if (err) throw err;
+                res.cookie('token', token).json({
+                    message: 'Login successful',
+                    user: {
+                        name: user.name,
+                        email: user.email,
+                        role: user.serviceProvider ? 'serviceProvider' : 'serviceRequestor'
+                    }
+                });
             }
         );
     } catch (error) {
@@ -105,12 +111,12 @@ const loginUser = async (req, res) => {
 const getProfile = (req, res) => {
     const { token } = req.cookies;
     if (token) {
-        jwt.verify(token, process.env.JWT_SECRET, {} , (err, user) => {
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
             if (err) throw err;
-             res.json(user);
+            res.json(user);
         });
     } else {
-         res.json(null);
+        res.json(null);
     }
 };
 
