@@ -1,0 +1,10 @@
+/* ServiceProviderDashboard.css */
+.issues-container {
+    max-height: 70vh; /* Adjust height as needed */
+    overflow-y: auto;
+    width: 100%;
+}
+
+.card {
+    overflow: hidden; /* Ensure card content doesn't overflow */
+}

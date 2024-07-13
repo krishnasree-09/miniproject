@@ -51,7 +51,7 @@ export default function Register() {
     };
 
     const getLocation = () => {
-        if (navigator.geolocation) {
+        if (navigator.geolocation) {        
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;

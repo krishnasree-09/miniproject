@@ -93,10 +93,13 @@ const loginUser = async (req, res) => {
                 if (err) throw err;
                 res.cookie('token', token).json({
                     message: 'Login successful',
+                    token,
                     user: {
                         name: user.name,
                         email: user.email,
-                        role: user.serviceProvider ? 'serviceProvider' : 'serviceRequestor'
+                        role: user.serviceProvider ? 'serviceProvider' : 'serviceRequestor',
+                        number: user.number,
+                        id : user._id.toString()
                     }
                 });
             }

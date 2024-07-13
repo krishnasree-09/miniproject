@@ -28,25 +28,33 @@ export default function Login() {
         e.preventDefault();
         const { email, password, serviceRequestor, serviceProvider } = data;
         try {
-            const { data: response } = await axios.post('/login', {
+            const response = await axios.post('http://localhost:8000/login', {
                 email,
                 password,
                 serviceRequestor,
-                serviceProvider
+                serviceProvider,
             });
 
-            if (response.error) {
-                toast.error(response.error);
+            if (response.data.error) {
+                toast.error(response.data.error);
             } else {
+                const { token, user } = response.data;
+
+                if (!token) {
+                    toast.error('Login failed. Token not received.');
+                    return;
+                }
+
                 // Set user data or token as needed
-                // localStorage.setItem('authToken', response.token);
+                localStorage.setItem('authToken', token);
+                localStorage.setItem('name', user.name);
+                localStorage.setItem('phone', user.number);
+                localStorage.setItem('serviceProviderId', user.id);
 
                 // Redirect based on role
-                console.log(response)
-                console.log(response.user.role == 'serviceRequestor')
-                if (response.user.role == 'serviceProvider') {
+                if (user.role === 'serviceProvider') {
                     navigate('/service-provider-dashboard');
-                } else if (response.user.role == 'serviceRequestor') {
+                } else if (user.role === 'serviceRequestor') {
                     navigate('/user-dashboard');
                 } else {
                     toast.error('Unknown role');
@@ -62,9 +70,10 @@ export default function Login() {
                 toast.success('Login Successful, WELCOME!!');
             }
         } catch (error) {
-            console.log(error);
+            console.error('Error during login:', error);
             toast.error('An error occurred during login');
         }
+        location.reload();
     };
 
     return (
@@ -81,6 +90,7 @@ export default function Login() {
                             placeholder="Email"
                             value={data.email}
                             onChange={(e) => setData({ ...data, email: e.target.value })}
+                            required
                         />
                     </div>
                     <div className="form-group mb-3">
@@ -92,6 +102,7 @@ export default function Login() {
                             placeholder="Password"
                             value={data.password}
                             onChange={(e) => setData({ ...data, password: e.target.value })}
+                            required
                         />
                     </div>
                     <div className="form-group mb-3">
