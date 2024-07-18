@@ -29,11 +29,45 @@ const submitIssue = async (req, res) => {
     }
 };
 
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2 - lat1); // deg2rad below
+    var dLon = deg2rad(lon2 - lon1); 
+    var a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+    var d = R * c; // Distance in km
+    return d;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180)
+}
 
 const fetchIssues = async (req, res) => {
     try {
         const serviceProviderId = req.params.serviceProviderId;
+        const slat = parseFloat(req.params.lat);
+        const slng = parseFloat(req.params.lng);
         const isProviderRequest = req.query.isProviderRequest === 'true';
+
+        console.log(`Service Provider ID: ${serviceProviderId}`);
+        console.log(`Service Provider Location: (${slat}, ${slng})`);
+
+        let allIssues = await Issue.find();
+        console.log('All Issues:', allIssues);
+
+        allIssues = allIssues.map(issue => {
+            const distance = getDistanceFromLatLonInKm(issue.location.lat, issue.location.lng, slat, slng);
+            return { ...issue.toObject(), distance };
+        });
+
+        console.log('All Issues with Distance:', allIssues);
+
+        const filteredIssues = allIssues.filter(issue => issue.distance < 15); // Change to 15km radius
+        console.log('Filtered Issues within 15km:', filteredIssues);
 
         let filterCriteria;
 
@@ -41,7 +75,7 @@ const fetchIssues = async (req, res) => {
             // Fetch pending issues and issues accepted by this specific provider
             filterCriteria = {
                 $or: [
-                    { status: 'pending', rejectedBy: { $ne: serviceProviderId } }, // Exclude issues rejected by this provider
+                    { status: 'pending', rejectedBy: { $ne: serviceProviderId }, _id: { $in: filteredIssues.map(issue => issue._id) } },
                     { status: 'accepted', acceptedBy: serviceProviderId }
                 ]
             };
@@ -49,11 +83,14 @@ const fetchIssues = async (req, res) => {
             // Fetch only pending issues
             filterCriteria = {
                 status: 'pending',
-                rejectedBy: { $ne: serviceProviderId } // Exclude issues rejected by this provider
+                rejectedBy: { $ne: serviceProviderId },
+                _id: { $in: filteredIssues.map(issue => issue._id) }
             };
         }
 
         const issues = await Issue.find(filterCriteria);
+
+        console.log('Filtered Issues based on Criteria:', issues);
 
         res.json({ issues });
     } catch (error) {
@@ -61,8 +98,6 @@ const fetchIssues = async (req, res) => {
         res.status(500).json({ success: false, message: 'An error occurred while fetching issues' });
     }
 };
-
-
 
 const acceptIssue = async (req, res) => {
     const { id } = req.params;
@@ -84,7 +119,6 @@ const acceptIssue = async (req, res) => {
         res.status(500).json({ success: false, message: 'An error occurred while accepting the issue' });
     }
 };
-
 
 // Reject Issue
 const rejectIssue = async (req, res) => {
@@ -108,7 +142,6 @@ const rejectIssue = async (req, res) => {
         res.status(500).json({ success: false, message: 'An error occurred while rejecting the issue' });
     }
 };
-
 
 module.exports = {
     submitIssue,

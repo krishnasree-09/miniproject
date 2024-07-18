@@ -9,16 +9,22 @@ export default function ServiceProviderDashboard() {
     const [issues, setIssues] = useState([]);
     const [addresses, setAddresses] = useState({});
     const [serviceProviderId, setServiceProviderId] = useState('');
+    const [lat, setLat] = useState('');
+    const [lng, setLng] = useState('');
 
     useEffect(() => {
         const id = localStorage.getItem('serviceProviderId');
+        const lat = localStorage.getItem('lat');
+        const lng = localStorage.getItem('lng');
         setServiceProviderId(id);
-        fetchIssues(id);
+        setLat(lat);
+        setLng(lng);
+        fetchIssues(id, lat, lng);
     }, []);
 
-    const fetchIssues = async (providerId) => {
+    const fetchIssues = async (providerId, lat, lng) => {
         try {
-            const response = await axios.get(`http://localhost:8000/api/fetch-issues/${providerId}?isProviderRequest=true`);
+            const response = await axios.get(`http://localhost:8000/api/fetch-issues/${providerId}/${lat}/${lng}?isProviderRequest=true`);
             const issuesData = response.data.issues;
             setIssues(issuesData);
 
@@ -60,7 +66,7 @@ export default function ServiceProviderDashboard() {
             const response = await axios.post(`http://localhost:8000/api/accept-issue/${issueId}?serviceProviderId=${serviceProviderId}`);
             if (response.data.success) {
                 toast.success('Issue accepted');
-                fetchIssues(serviceProviderId);
+                fetchIssues(serviceProviderId, lat, lng);
             } else {
                 toast.error(response.data.message);
             }
@@ -75,7 +81,7 @@ export default function ServiceProviderDashboard() {
             const response = await axios.post(`http://localhost:8000/api/reject-issue/${issueId}/${serviceProviderId}`);
             if (response.data.success) {
                 toast.success('Issue rejected');
-                fetchIssues(serviceProviderId);
+                fetchIssues(serviceProviderId, lat, lng);
             } else {
                 toast.error(response.data.message);
             }

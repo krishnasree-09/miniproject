@@ -46,10 +46,13 @@ export default function Login() {
                 }
 
                 // Set user data or token as needed
+                
                 localStorage.setItem('authToken', token);
                 localStorage.setItem('name', user.name);
                 localStorage.setItem('phone', user.number);
                 localStorage.setItem('serviceProviderId', user.id);
+                localStorage.setItem('lat',user.lat);
+                localStorage.setItem('lng',user.lng);
 
                 // Redirect based on role
                 if (user.role === 'serviceProvider') {

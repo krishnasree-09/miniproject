@@ -12,7 +12,7 @@ router.use(
 );
 
 router.post('/submit-issue', submitIssue);
-router.get('/fetch-issues/:serviceProviderId', fetchIssues);
+router.get('/fetch-issues/:serviceProviderId/:lat/:lng', fetchIssues);
 router.post('/accept-issue/:id', acceptIssue);
 router.post('/reject-issue/:issueId/:serviceProviderId', rejectIssue);
 

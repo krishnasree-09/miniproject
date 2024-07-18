@@ -13,13 +13,15 @@ export default function Register() {
         password: '',
         number: '',
         location: '',
+        lat: '',
+        lng: '',
         serviceProvider: false,
         serviceRequestor: false,
     });
 
     const registerUser = async (e) => {
         e.preventDefault();
-        const { name, email, password, location, number, serviceProvider, serviceRequestor } = data;
+        const { name, email, password, location,lat,lng, number, serviceProvider, serviceRequestor } = data;
         try {
             const { data: response } = await axios.post('/register', {
                 name,
@@ -27,6 +29,8 @@ export default function Register() {
                 password,
                 number,
                 location,
+                lat,
+                lng,
                 serviceProvider,
                 serviceRequestor
             });
@@ -39,6 +43,8 @@ export default function Register() {
                     password: '',
                     number: '',
                     location: '',
+                    lat:'',
+                    lng:'',
                     serviceProvider: false,
                     serviceRequestor: false,
                 });
@@ -67,7 +73,7 @@ export default function Register() {
                             response.data.address.country,
                             response.data.address.postcode
                         ].filter(Boolean).join(', '); // Join components and filter out empty values
-                        setData({ ...data, location: address });
+                        setData({ ...data, location: address,lat,lng });
                     } else {
                         toast.error('Location not found');
                     }

@@ -9,6 +9,8 @@ const userSchema = new Schema({
     },
     password: String,
     location:String,
+    lat:Number,
+    lng:Number,
     number:String,
     serviceProvider: Boolean,
     serviceRequestor:Boolean

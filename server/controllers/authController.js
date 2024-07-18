@@ -10,7 +10,7 @@ const test = (req, res) => {
 // Register Endpoint
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, location, number, serviceProvider, serviceRequestor } = req.body;
+        const { name, email, password, location,lat,lng, number, serviceProvider, serviceRequestor } = req.body;
 
         if (!name) {
             return res.json({ error: 'Name is required' });
@@ -46,6 +46,8 @@ const registerUser = async (req, res) => {
             email,
             password: hashedPassword,
             location,
+            lat,
+            lng,
             number,
             serviceProvider,
             serviceRequestor
@@ -99,6 +101,8 @@ const loginUser = async (req, res) => {
                         email: user.email,
                         role: user.serviceProvider ? 'serviceProvider' : 'serviceRequestor',
                         number: user.number,
+                        lat:user.lat,
+                        lng:user.lng,
                         id : user._id.toString()
                     }
                 });
