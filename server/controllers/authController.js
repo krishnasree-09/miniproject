@@ -27,6 +27,9 @@ const registerUser = async (req, res) => {
         if (!number || number.length < 10) {
             return res.json({ error: 'Number should be of 10 digits' });
         }
+        if(await User.findOne({number})){
+            return res.json({error:'Phone number exists already'});
+        }
 
         if (!location) {
             return res.json({ error: 'Location is required' });

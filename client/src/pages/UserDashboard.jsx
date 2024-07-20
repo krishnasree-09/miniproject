@@ -3,20 +3,48 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './UserDashboard.css'; // Import the CSS file
 
 export default function UserDashboard() {
     const [issue, setIssue] = useState('');
     const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
     const [user, setUser] = useState({ name: '', phone: '' });
+    const [issues, setIssues] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const fetchUserData = async () => {
+        const fetchUserData = () => {
             const name = localStorage.getItem('name') || '';
             const phone = localStorage.getItem('phone') || '';
             setUser({ name, phone });
         };
         fetchUserData();
     }, []);
+
+    useEffect(() => {
+        const fetchIssues = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get('http://localhost:8000/api/issue-status', {
+                    params: { phone: user.phone },
+                });
+                if (response.status === 200 && response.data) {
+                    setIssues(response.data);
+                } else {
+                    console.warn('Unexpected response status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching issues:', error.response ? error.response.data : error.message);
+                toast.error('An error occurred while fetching issues. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user.phone) {
+            fetchIssues();
+        }
+    }, [user.phone]);
 
     const handleLocation = () => {
         if (navigator.geolocation) {
@@ -27,7 +55,6 @@ export default function UserDashboard() {
 
                     try {
                         const response = await axios.get(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
-
                         if (response.data && response.data.address) {
                             const address = [
                                 response.data.address.road,
@@ -75,6 +102,21 @@ export default function UserDashboard() {
                 toast.success('Issue submitted successfully');
                 setIssue('');
                 setLocation({ lat: null, lng: null, address: '' });
+                // Fetch issues again after submitting a new one
+                const fetchIssues = async () => {
+                    try {
+                        const response = await axios.get('http://localhost:8000/api/issue-status', {
+                            params: { phone: user.phone },
+                        });
+                        if (response.data) {
+                            setIssues(response.data);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching issues:', error);
+                        toast.error('An error occurred while fetching issues');
+                    }
+                };
+                fetchIssues();
             } else {
                 toast.error(response.data.message);
             }
@@ -85,38 +127,69 @@ export default function UserDashboard() {
     };
 
     return (
-        <div className="vh-100 vw-100 container-fluid d-flex align-items-center justify-content-center bg-secondary">
-            <div className="card p-5 bg-dark text-white w-50">
-                <h2 className="text-center mb-4">Submit an Issue</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group mb-3">
-                        <label htmlFor="issue">Issue</label>
-                        <textarea
-                            className="form-control"
-                            id="issue"
-                            rows="3"
-                            placeholder="Describe your issue"
-                            value={issue}
-                            onChange={(e) => setIssue(e.target.value)}
-                            required
-                        ></textarea>
-                    </div>
-                    <div className="form-group mb-3">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleLocation}
-                        >
-                            Get Location
-                        </button>
-                        {location.lat && location.lng && (
-                            <p className="mt-2">    
-                                Location: {location.address || `${location.lat}, ${location.lng}`}
-                            </p>
-                        )}
-                    </div>
-                    <button type="submit" className="btn btn-primary w-100">Submit</button>
-                </form>
+        <div className="full-page-containervh-100 vw-100 container-fluid d-flex flex-column align-items-center justify-content-center bg-secondary">
+            <div className="card-container d-flex align-items-center justify-content-center vh-100 vw-100 container-fluid">
+                <div className="card p-5 bg-dark text-white w-75">
+                    <h2 className="text-center mb-4">Submit an Issue</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group mb-3">
+                            <label htmlFor="issue">Issue</label>
+                            <textarea
+                                className="form-control"
+                                id="issue"
+                                rows="3"
+                                placeholder="Describe your issue"
+                                value={issue}
+                                onChange={(e) => setIssue(e.target.value)}
+                                required
+                            ></textarea>
+                        </div>
+                        <div className="form-group mb-3">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={handleLocation}
+                            >
+                                Get Location
+                            </button>
+                            {location.lat && location.lng && (
+                                <p className="mt-2">
+                                    Location: {location.address || `${location.lat}, ${location.lng}`}
+                                </p>
+                            )}
+                        </div>
+                        <button type="submit" className="btn btn-primary w-100">Submit</button>
+                    </form>
+                    {loading ? (
+                        <div className="text-center mt-4">
+                            <div className="spinner-border text-light" role="status">
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    ) : (
+                        issues.length > 0 && (
+                            <div className="mt-4 issues-container">
+                                <h3>Issues</h3>
+                                <ul className="list-unstyled">
+                                    {issues.map((issueItem, index) => (
+                                        <li key={index} className="mb-3 p-3 border rounded bg-light text-dark">
+                                            <h4>Issue: {issueItem.issue}</h4>
+                                            <p>Status: {issueItem.status}</p>
+                                            {issueItem.status === 'accepted' && issueItem.acceptedBy && (
+                                                <div>
+                                                    <h5>Accepted by:</h5>
+                                                    <p>
+                                                        {issueItem.acceptedBy.name} - {issueItem.acceptedBy.number} - {issueItem.acceptedBy.location}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )
+                    )}
+                </div>
             </div>
         </div>
     );

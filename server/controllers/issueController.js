@@ -1,4 +1,29 @@
 const Issue = require('../models/issueModel');
+const User = require('../models/user');
+
+const issueStatus = async (req, res) => {
+    const { phone } = req.query;
+    
+    if (!phone) {
+        return res.status(400).json({ message: 'Phone number is required' });
+    }
+    
+    try {
+        // Fetch issues from the database using the phone number
+        const issues = await Issue.find({ phone }).populate('acceptedBy');
+        
+        if (issues.length === 0) {
+            return res.status(404).json({ message: 'No issues found for this phone number' });
+        }
+
+        res.status(200).json(issues);
+    } catch (error) {
+        console.error('Error fetching issues:', error);
+        res.status(500).json({ message: 'An error occurred while fetching issues' });
+    }
+};
+
+
 
 // Submit Issue
 const submitIssue = async (req, res) => {
@@ -18,6 +43,8 @@ const submitIssue = async (req, res) => {
             location,
             name,
             phone,
+            // status: 'pending', // Initial status
+            // acceptedBy: [],
         });
 
         await newIssue.save();
@@ -147,5 +174,8 @@ module.exports = {
     submitIssue,
     fetchIssues,
     acceptIssue,
-    rejectIssue
+    rejectIssue,
+    issueStatus
 };
+
+

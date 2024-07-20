@@ -1,0 +1,27 @@
+/* Ensure the container takes full viewport height and enables scrolling */
+.full-page-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent scroll on the body */
+}
+
+/* Ensure card content can scroll */
+.card-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Ensure card does not exceed viewport height */
+.card {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* UserDashboard.css */
+
+.issues-container {
+    max-height: 300px; /* Adjust the height as needed */
+    overflow-y: auto;
+}
