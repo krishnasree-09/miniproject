@@ -126,6 +126,26 @@ export default function UserDashboard() {
         }
     };
 
+    const handleCloseIssue = async (issueId) => {
+        try {
+            const response = await axios.post(`http://localhost:8000/api/close-issue`, {
+                issueId,
+            });
+
+            if (response.data.success) {
+                toast.success('Issue closed successfully');
+                setIssues(issues.map(issue => 
+                    issue._id === issueId ? { ...issue, status: 'closed' } : issue
+                ));
+            } else {
+                toast.error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Error closing issue:', error);
+            toast.error('An error occurred while closing the issue');
+        }
+    };
+
     return (
         <div className="full-page-containervh-100 vw-100 container-fluid d-flex flex-column align-items-center justify-content-center bg-secondary">
             <div className="card-container d-flex align-items-center justify-content-center vh-100 vw-100 container-fluid">
@@ -182,6 +202,14 @@ export default function UserDashboard() {
                                                         {issueItem.acceptedBy.name} - {issueItem.acceptedBy.number} - {issueItem.acceptedBy.location}
                                                     </p>
                                                 </div>
+                                            )}
+                                            {issueItem.status !== 'closed' && (
+                                                <button
+                                                    className="btn btn-danger mt-2"
+                                                    onClick={() => handleCloseIssue(issueItem._id)}
+                                                >
+                                                    Close Issue
+                                                </button>
                                             )}
                                         </li>
                                     ))}

@@ -136,6 +136,9 @@ export default function ServiceProviderDashboard() {
                                     {issue.status === 'accepted' && issue.acceptedBy === serviceProviderId && (
                                         <span className="badge bg-success">Accepted</span>
                                     )}
+                                    {issue.status === 'closed' && issue.acceptedBy === serviceProviderId && (
+                                        <span className="badge bg-success">Accepted</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}

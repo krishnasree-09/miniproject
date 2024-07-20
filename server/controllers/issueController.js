@@ -23,7 +23,24 @@ const issueStatus = async (req, res) => {
     }
 };
 
+const closeIssue = async(req,res) => {
+    const { issueId } = req.body;
 
+    try {
+        const issue = await Issue.findById(issueId);
+        if (!issue) {
+            return res.status(404).json({ success: false, message: 'Issue not found' });
+        }
+
+        issue.status = 'closed';
+        await issue.save();
+
+        res.json({ success: true, message: 'Issue closed successfully' });
+    } catch (error) {
+        console.error('Error closing issue:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while closing the issue' });
+    }
+}
 
 // Submit Issue
 const submitIssue = async (req, res) => {
@@ -80,8 +97,8 @@ const fetchIssues = async (req, res) => {
         const slng = parseFloat(req.params.lng);
         const isProviderRequest = req.query.isProviderRequest === 'true';
 
-        console.log(`Service Provider ID: ${serviceProviderId}`);
-        console.log(`Service Provider Location: (${slat}, ${slng})`);
+        //console.log(`Service Provider ID: ${serviceProviderId}`);
+        //console.log(`Service Provider Location: (${slat}, ${slng})`);
 
         let allIssues = await Issue.find();
         console.log('All Issues:', allIssues);
@@ -91,7 +108,7 @@ const fetchIssues = async (req, res) => {
             return { ...issue.toObject(), distance };
         });
 
-        console.log('All Issues with Distance:', allIssues);
+       // console.log('All Issues with Distance:', allIssues);
 
         const filteredIssues = allIssues.filter(issue => issue.distance < 15); // Change to 15km radius
         console.log('Filtered Issues within 15km:', filteredIssues);
@@ -103,7 +120,8 @@ const fetchIssues = async (req, res) => {
             filterCriteria = {
                 $or: [
                     { status: 'pending', rejectedBy: { $ne: serviceProviderId }, _id: { $in: filteredIssues.map(issue => issue._id) } },
-                    { status: 'accepted', acceptedBy: serviceProviderId }
+                    { status: 'accepted', acceptedBy: serviceProviderId },
+                    { status:'closed' , acceptedBy: serviceProviderId }
                 ]
             };
         } else {
@@ -175,7 +193,8 @@ module.exports = {
     fetchIssues,
     acceptIssue,
     rejectIssue,
-    issueStatus
+    issueStatus,
+    closeIssue
 };
 
 
